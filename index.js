@@ -165,7 +165,7 @@ app.post("/api/updateStationStatus", async (req, res) => {
     }
 
     // Update the status and timestamp
-    user[stationField].status = status || "Updated";
+    user[stationField].status = status || "Scanned";
     user[stationField].dateTimeModified = new Date();
 
     // Save the changes
