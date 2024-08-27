@@ -21,21 +21,15 @@ const barcodeSchema = new mongoose.Schema({
   barcodeData: String
 });
 
-const StationSchema = new mongoose.Schema({
-  status: { type: String, default: 'inactive' },
-  dateTimeModified: { type: Date, default: null },
+const userSchema = new mongoose.Schema({
+  name: String,
+  station1: String,  // Set default to null if not provided
+  station2: String,
+  station3: String,
+  station4: String,
+  station5: String,
+  station6: String,
 });
-
-const UserSchema = new mongoose.Schema({
-  name: { type: String, required: true },
-  station1: { type: StationSchema, default: {} },
-  station2: { type: StationSchema, default: {} },
-  station3: { type: StationSchema, default: {} },
-  station4: { type: StationSchema, default: {} },
-  station5: { type: StationSchema, default: {} },
-  station6: { type: StationSchema, default: {} },
-});
-
 
 // Create models for the schemas
 const Barcode = mongoose.model('Barcode', barcodeSchema);
@@ -99,27 +93,30 @@ app.get('/api/fetch/user', async (req, res) => {
 
 // Route to handle POST request for user data
 app.post('/api/insert/user', async (req, res) => {
-  const { name, station1, station2, station3, station4, station5, station6 } = req.body;
+  const { name, station1, station2, station3, station4, station5, station6 } = req.body; // Expecting `name` and station fields
 
   if (!name) {
     return res.status(400).json({ message: 'No user name provided' });
   }
 
   try {
+    // Check if the user already exists
     let user = await User.findOne({ name });
 
     if (user) {
+      // If the user exists, return the user data
       return res.status(200).json({ message: 'User already exists', user });
     }
 
+    // If the user doesn't exist, create a new user
     user = new User({
       name,
-      station1: station1 || {},
-      station2: station2 || {},
-      station3: station3 || {},
-      station4: station4 || {},
-      station5: station5 || {},
-      station6: station6 || {},
+      station1: station1 || null,  // Set default to null if not provided
+      station2: station2 || null,
+      station3: station3 || null,
+      station4: station4 || null,
+      station5: station5 || null,
+      station6: station6 || null,
     });
     await user.save();
     res.status(200).json({ message: 'User inserted successfully', user });
@@ -129,38 +126,52 @@ app.post('/api/insert/user', async (req, res) => {
 });
 
 app.post("/api/updateStationStatus", async (req, res) => {
-  const { uid, stationNumber, status } = req.body;
+  const { uid, stationNumber } = req.body;
 
+  // Input validation
+  
   if (!uid || typeof uid !== 'string') {
-    return res.status(400).json({ message: "Invalid or missing UID." });
+    return res.status(400).json({
+      success: false,
+      message: "Invalid or missing UID.",
+    });
   }
 
   if (stationNumber < 1 || stationNumber > 6) {
-    return res.status(400).json({ message: "Invalid station number." });
+    return res.status(400).json({
+      success: false,
+      message: "Invalid station number.",
+    });
   }
 
   const updateField = {};
-  updateField[`station${stationNumber}.status`] = status || "Updated";
-  updateField[`station${stationNumber}.dateTimeModified`] = new Date();
+  updateField[`station${stationNumber}`] = "Updated"; // Or set to a different value as needed
 
   try {
-    let user = await User.findByIdAndUpdate(
-      uid,
-      { $set: updateField },
-      { new: true }
-    );
 
-    if (user) {
+   
+        // Assume NewsArticle is your Mongoose model for content
+        let user = await User.findByIdAndUpdate(
+          uid,
+          updateField, // Update the title field
+        );
+    
+    
+        if (user) {
       res.status(200).json({
         success: true,
         message: `User's station${stationNumber} updated successfully!`,
         data: user,
       });
     } else {
-      res.status(404).json({ message: "User not found!" });
+      res.status(404).json({
+        success: false,
+        message: "User not found!",
+      });
     }
   } catch (error) {
     res.status(500).json({
+      success: false,
       message: "Error updating station status.",
       error: error.message,
     });
