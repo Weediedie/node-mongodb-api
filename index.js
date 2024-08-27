@@ -1,151 +1,179 @@
 const express = require("express");
-
+const cors = require('cors');
 const app = express();
-
+const bodyParser = require('body-parser');
 require("dotenv").config();
-
+const mongoose = require('mongoose')
 app.use(express.json());
 
 const connectDB = require("./connectMongo");
 
 connectDB();
 
-const BookModel = require("./models/book.model");
-const redis = require('./redis')
 
-const deleteKeys = async (pattern) => {
-  const keys = await redis.keys(`${pattern}::*`)
-  console.log(keys)
-  if (keys.length > 0) {
-    redis.del(keys)
+
+// Middleware
+app.use(cors());
+app.use(bodyParser.json());
+
+// Define a schema for the barcode data
+const barcodeSchema = new mongoose.Schema({
+  barcodeData: String
+});
+
+const userSchema = new mongoose.Schema({
+  name: String,
+  station1: String,  // Set default to null if not provided
+  station2: String,
+  station3: String,
+  station4: String,
+  station5: String,
+  station6: String,
+});
+
+// Create models for the schemas
+const Barcode = mongoose.model('Barcode', barcodeSchema);
+const User = mongoose.model('User', userSchema);
+
+// Route to handle POST request for barcode data
+app.post('/api/insert', async (req, res) => {
+  const { barcodeData } = req.body;
+
+  if (!barcodeData) {
+    return res.status(400).json({ message: 'No barcode data provided' });
   }
-}
 
-app.get("/api/v1/books", async (req, res) => {
-  const { limit = 5, orderBy = "name", sortBy = "asc", keyword } = req.query;
-  let page = +req.query?.page;
-
-  if (!page || page <= 0) page = 1;
-
-  const skip = (page - 1) * + limit;
-
-  const query = {};
-
-  if (keyword) query.name = { $regex: keyword, $options: "i" };
-
-  const key = `Book::${JSON.stringify({query, page, limit, orderBy, sortBy})}`
-  let response = null
   try {
-    const cache = await redis.get(key)
-    if (cache) {
-      response = JSON.parse(cache)
-    } else {
-      const data = await BookModel.find(query)
-      .skip(skip)
-      .limit(limit)
-      .sort({ [orderBy]: sortBy });
-      const totalItems = await BookModel.countDocuments(query);
+    const newBarcode = new Barcode({ barcodeData });
+    await newBarcode.save();
+    res.status(200).json({ message: 'Data inserted successfully' });
+  } catch (error) {
+    res.status(500).json({ message: 'Error inserting data', error });
+  }
+});
 
-      response = {
-        msg: "Ok",
-        data,
-        totalItems,
-        totalPages: Math.ceil(totalItems / limit),
-        limit: +limit,
-        currentPage: page,
-      }
+// Route to fetch all barcode data
+app.get('/api/fetch', async (req, res) => {
+  try {
+    const barcodeData = await Barcode.find(); // No filter means it retrieves all documents
+    res.status(200).json({ data: barcodeData });
+  } catch (error) {
+    res.status(500).json({ message: 'Error retrieving data', error });
+  }
+});
 
-      redis.setex(key, 600, JSON.stringify(response))
+// Route to fetch user data by name
+app.get('/api/fetch/user/:name', async (req, res) => {
+  try {
+    const userName = req.params.name; // Access the 'name' parameter from the URL
+    const user = await User.find({ name: userName }); // Find user by name
+    res.status(200).json({ data: user });
+  } catch (error) {
+    res.status(500).json({ message: 'Error retrieving data', error });
+  }
+});
+app.get('/api/fetch/user', async (req, res) => {
+  try {
+    const userId = req.query.id; // Access 'id' from query parameters
+    if (!userId) {
+      return res.status(400).json({ message: 'User ID is required' });
     }
     
-    return res.status(200).json(response);
+    const user = await User.findById(userId); // Find user by ID
+
+    if (user) {
+      res.status(200).json({ data: user });
+    } else {
+      res.status(404).json({ message: 'User not found' });
+    }
   } catch (error) {
-    return res.status(500).json({
-      msg: error.message,
-    });
+    res.status(500).json({ message: 'Error retrieving data', error });
   }
 });
 
-app.get("/api/v1/books/:id", async (req, res) => {
-  try {
-    const data = await BookModel.findById(req.params.id);
+// Route to handle POST request for user data
+app.post('/api/insert/user', async (req, res) => {
+  const { name, station1, station2, station3, station4, station5, station6 } = req.body; // Expecting `name` and station fields
 
-    if (data) {
-      return res.status(200).json({
-        msg: "Ok",
-        data,
-      });
+  if (!name) {
+    return res.status(400).json({ message: 'No user name provided' });
+  }
+
+  try {
+    // Check if the user already exists
+    let user = await User.findOne({ name });
+
+    if (user) {
+      // If the user exists, return the user data
+      return res.status(200).json({ message: 'User already exists', user });
     }
 
-    return res.status(404).json({
-      msg: "Not Found",
-    });
-  } catch (error) {
-    return res.status(500).json({
-      msg: error.message,
-    });
-  }
-});
-
-app.post("/api/v1/books", async (req, res) => {
-  try {
-    const { name, author, price, description } = req.body;
-    const book = new BookModel({
+    // If the user doesn't exist, create a new user
+    user = new User({
       name,
-      author,
-      price,
-      description,
+      station1: station1 || null,  // Set default to null if not provided
+      station2: station2 || null,
+      station3: station3 || null,
+      station4: station4 || null,
+      station5: station5 || null,
+      station6: station6 || null,
     });
-    const data = await book.save();
-    deleteKeys('Book')
-    return res.status(200).json({
-      msg: "Ok",
-      data,
-    });
+    await user.save();
+    res.status(200).json({ message: 'User inserted successfully', user });
   } catch (error) {
-    return res.status(500).json({
-      msg: error.message,
-    });
+    res.status(500).json({ message: 'Error inserting user', error });
   }
 });
 
-app.put("/api/v1/books/:id", async (req, res) => {
-  try {
-    const { name, author, price, description } = req.body;
-    const { id } = req.params;
+app.post("/api/updateStationStatus", async (req, res) => {
+  const { uid, stationNumber } = req.body;
 
-    const data = await BookModel.findByIdAndUpdate(
-      id,
-      {
-        name,
-        author,
-        price,
-        description,
-      },
-      { new: true }
-    );
-    deleteKeys('Book')
-    return res.status(200).json({
-      msg: "Ok",
-      data,
-    });
-  } catch (error) {
-    return res.status(500).json({
-      msg: error.message,
+  // Input validation
+  
+  if (!uid || typeof uid !== 'string') {
+    return res.status(400).json({
+      success: false,
+      message: "Invalid or missing UID.",
     });
   }
-});
 
-app.delete("/api/v1/books/:id", async (req, res) => {
-  try {
-    await BookModel.findByIdAndDelete(req.params.id);
-    deleteKeys('Book')
-    return res.status(200).json({
-      msg: "Ok",
+  if (stationNumber < 1 || stationNumber > 6) {
+    return res.status(400).json({
+      success: false,
+      message: "Invalid station number.",
     });
+  }
+
+  const updateField = {};
+  updateField[`station${stationNumber}`] = "Updated"; // Or set to a different value as needed
+
+  try {
+
+   
+        // Assume NewsArticle is your Mongoose model for content
+        let user = await User.findByIdAndUpdate(
+          uid,
+          updateField, // Update the title field
+        );
+    
+    
+        if (user) {
+      res.status(200).json({
+        success: true,
+        message: `User's station${stationNumber} updated successfully!`,
+        data: user,
+      });
+    } else {
+      res.status(404).json({
+        success: false,
+        message: "User not found!",
+      });
+    }
   } catch (error) {
-    return res.status(500).json({
-      msg: error.message,
+    res.status(500).json({
+      success: false,
+      message: "Error updating station status.",
+      error: error.message,
     });
   }
 });
