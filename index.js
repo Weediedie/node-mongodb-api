@@ -60,25 +60,25 @@ app.post('/api/insert', async (req, res) => {
 });
 
 // Route to fetch all barcode data
-// app.get('/api/fetch', async (req, res) => {
-//   try {
-//     const barcodeData = await Barcode.find(); // No filter means it retrieves all documents
-//     res.status(200).json({ data: barcodeData });
-//   } catch (error) {
-//     res.status(500).json({ message: 'Error retrieving data', error });
-//   }
-// });
+app.get('/api/fetch', async (req, res) => {
+  try {
+    const barcodeData = await Barcode.find(); // No filter means it retrieves all documents
+    res.status(200).json({ data: barcodeData });
+  } catch (error) {
+    res.status(500).json({ message: 'Error retrieving data', error });
+  }
+});
 
 // Route to fetch user data by name
-// app.get('/api/fetch/user/:name', async (req, res) => {
-//   try {
-//     const userName = req.params.name; // Access the 'name' parameter from the URL
-//     const user = await User.find({ name: userName }); // Find user by name
-//     res.status(200).json({ data: user });
-//   } catch (error) {
-//     res.status(500).json({ message: 'Error retrieving data', error });
-//   }
-// });
+app.get('/api/fetch/user/:name', async (req, res) => {
+  try {
+    const userName = req.params.name; // Access the 'name' parameter from the URL
+    const user = await User.find({ name: userName }); // Find user by name
+    res.status(200).json({ data: user });
+  } catch (error) {
+    res.status(500).json({ message: 'Error retrieving data', error });
+  }
+});
 
 app.get('/api/fetch/user', async (req, res) => {
   try {
