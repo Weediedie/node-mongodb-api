@@ -103,15 +103,15 @@ app.get('/api/fetch/user', async (req, res) => {
 app.post('/api/insert/user', async (req, res) => {
   const { firstname, lastname, station1, station2, station3, station4, station5, station6 } = req.body;
 
-  if (!name) {
+  if (!firstname || !lastname) {
     return res.status(400).json({ message: 'No user name provided' });
   }
 
   try {
     // Check if the user already exists
-    let user = await User.findOne({ name });
+    let userCheck = await User.findOne({ firstname, lastname });
 
-    if (user) {
+    if (userCheck) {
       return res.status(200).json({ message: 'User already exists', user });
     }
 
