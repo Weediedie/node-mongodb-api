@@ -27,7 +27,8 @@ const StationSchema = new mongoose.Schema({
 });
 
 const userSchema = new mongoose.Schema({
-  name: { type: String, required: true },
+  lastname: { type: String, required: true },
+  firstname: { type: String, required: true },
   station1: { type: StationSchema, default: {} },
   station2: { type: StationSchema, default: {} },
   station3: { type: StationSchema, default: {} },
@@ -59,25 +60,26 @@ app.post('/api/insert', async (req, res) => {
 });
 
 // Route to fetch all barcode data
-app.get('/api/fetch', async (req, res) => {
-  try {
-    const barcodeData = await Barcode.find(); // No filter means it retrieves all documents
-    res.status(200).json({ data: barcodeData });
-  } catch (error) {
-    res.status(500).json({ message: 'Error retrieving data', error });
-  }
-});
+// app.get('/api/fetch', async (req, res) => {
+//   try {
+//     const barcodeData = await Barcode.find(); // No filter means it retrieves all documents
+//     res.status(200).json({ data: barcodeData });
+//   } catch (error) {
+//     res.status(500).json({ message: 'Error retrieving data', error });
+//   }
+// });
 
 // Route to fetch user data by name
-app.get('/api/fetch/user/:name', async (req, res) => {
-  try {
-    const userName = req.params.name; // Access the 'name' parameter from the URL
-    const user = await User.find({ name: userName }); // Find user by name
-    res.status(200).json({ data: user });
-  } catch (error) {
-    res.status(500).json({ message: 'Error retrieving data', error });
-  }
-});
+// app.get('/api/fetch/user/:name', async (req, res) => {
+//   try {
+//     const userName = req.params.name; // Access the 'name' parameter from the URL
+//     const user = await User.find({ name: userName }); // Find user by name
+//     res.status(200).json({ data: user });
+//   } catch (error) {
+//     res.status(500).json({ message: 'Error retrieving data', error });
+//   }
+// });
+
 app.get('/api/fetch/user', async (req, res) => {
   try {
     const userId = req.query.id; // Access 'id' from query parameters
@@ -99,7 +101,7 @@ app.get('/api/fetch/user', async (req, res) => {
 
 // Route to handle POST request for user data
 app.post('/api/insert/user', async (req, res) => {
-  const { name, station1, station2, station3, station4, station5, station6 } = req.body;
+  const { firstname, lastname, station1, station2, station3, station4, station5, station6 } = req.body;
 
   if (!name) {
     return res.status(400).json({ message: 'No user name provided' });
@@ -115,7 +117,8 @@ app.post('/api/insert/user', async (req, res) => {
 
     // Initialize station fields as objects if they are not provided
     user = new User({
-      name,
+      lastname,
+      firstname,
       station1:{ status: 'inactive', dateTimeModified: null },
       station2:{ status: 'inactive', dateTimeModified: null },
       station3:{ status: 'inactive', dateTimeModified: null },
