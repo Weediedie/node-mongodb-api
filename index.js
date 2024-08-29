@@ -99,7 +99,6 @@ app.get('/api/fetch/user', async (req, res) => {
   }
 });
 
-// Route to handle POST request for user data
 app.post('/api/insert/user', async (req, res) => {
   const { firstname, lastname, station1, station2, station3, station4, station5, station6 } = req.body;
 
@@ -112,23 +111,23 @@ app.post('/api/insert/user', async (req, res) => {
     let userCheck = await User.findOne({ firstname, lastname });
 
     if (userCheck) {
-      return res.status(200).json({ message: 'User already exists', user });
+      return res.status(200).json({ message: 'User already exists', user: userCheck });
     }
 
-    // Initialize station fields as objects if they are not provided
-    user = new User({
-      lastname,
+    // Initialize station fields, using provided values or default ones if not provided
+    const user = new User({
       firstname,
-      station1:{ status: 'inactive', dateTimeModified: null },
-      station2:{ status: 'inactive', dateTimeModified: null },
-      station3:{ status: 'inactive', dateTimeModified: null },
-      station4:{ status: 'inactive', dateTimeModified: null },
-      station5:{ status: 'inactive', dateTimeModified: null },
-      station6:{ status: 'inactive', dateTimeModified: null },
+      lastname,
+      station1: station1 || { status: 'inactive', dateTimeModified: null },
+      station2: station2 || { status: 'inactive', dateTimeModified: null },
+      station3: station3 || { status: 'inactive', dateTimeModified: null },
+      station4: station4 || { status: 'inactive', dateTimeModified: null },
+      station5: station5 || { status: 'inactive', dateTimeModified: null },
+      station6: station6 || { status: 'inactive', dateTimeModified: null },
     });
 
     await user.save();
-    res.status(200).json({ message: 'User inserted successfully', user });
+    res.status(201).json({ message: 'User inserted successfully', user });
   } catch (error) {
     res.status(500).json({ message: 'Error inserting user', error });
   }
