@@ -124,6 +124,7 @@ app.post('/api/insert/user', async (req, res) => {
       station4: station4 || { status: 'inactive', dateTimeModified: null },
       station5: station5 || { status: 'inactive', dateTimeModified: null },
       station6: station6 || { status: 'inactive', dateTimeModified: null },
+      station7: station7 || { status: 'inactive', dateTimeModified: null },
     });
 
     await user.save();
