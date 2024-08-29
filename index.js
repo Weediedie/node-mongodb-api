@@ -35,6 +35,7 @@ const userSchema = new mongoose.Schema({
   station4: { type: StationSchema, default: {} },
   station5: { type: StationSchema, default: {} },
   station6: { type: StationSchema, default: {} },
+  station7: { type: StationSchema, default: {} },
 });
 
 
@@ -100,7 +101,7 @@ app.get('/api/fetch/user', async (req, res) => {
 });
 
 app.post('/api/insert/user', async (req, res) => {
-  const { firstname, lastname, station1, station2, station3, station4, station5, station6 } = req.body;
+  const { firstname, lastname, station1, station2, station3, station4, station5, station6, station7 } = req.body;
 
   if (!firstname || !lastname) {
     return res.status(400).json({ message: 'No user name provided' });
