@@ -146,7 +146,7 @@ app.post("/api/updateStationStatus", async (req, res) => {
       return res.status(400).json({ message: "Invalid or missing UID." });
     }
 
-    if (stationNumber < 1 || stationNumber > 6) {
+    if (stationNumber < 1 || stationNumber > 7) {
       return res.status(400).json({ message: "Invalid station number." });
     }
 
