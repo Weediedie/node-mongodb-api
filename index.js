@@ -81,7 +81,19 @@ app.get('/api/fetch/user/:name', async (req, res) => {
     res.status(500).json({ message: 'Error retrieving data', error });
   }
 });
-
+app.get('/api/fetch/all/users', async (req, res) => {
+  try {
+    const users = await User.find(); // Fetch all users from the database
+    
+    if (users && users.length > 0) {
+      res.status(200).json({ data: users });
+    } else {
+      res.status(404).json({ message: 'No users found' });
+    }
+  } catch (error) {
+    res.status(500).json({ message: 'Error retrieving data', error });
+  }
+});
 app.get('/api/fetch/user', async (req, res) => {
   try {
     const userId = req.query.id; // Access 'id' from query parameters
