@@ -36,6 +36,7 @@ const userSchema = new mongoose.Schema({
   station5: { type: StationSchema, default: {} },
   station6: { type: StationSchema, default: {} },
   station7: { type: StationSchema, default: {} },
+  dateCreated: { type: Date, default: Date.now }
 });
 
 
