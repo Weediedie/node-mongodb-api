@@ -31,6 +31,10 @@ const userSchema = new mongoose.Schema({
   firstname: { type: String, required: true },
   station1: { type: StationSchema, default: {} },
   station2: { type: StationSchema, default: {} },
+  station3: { type: StationSchema, default: {} },
+  station4: { type: StationSchema, default: {} },
+  station5: { type: StationSchema, default: {} },
+  station6: { type: StationSchema, default: {} },
   dateCreated: { type: Date, default: Date.now }
 });
 
@@ -109,7 +113,7 @@ app.get('/api/fetch/user', async (req, res) => {
 });
 
 app.post('/api/insert/user', async (req, res) => {
-  const { firstname, lastname, station1, station2 } = req.body;
+  const { firstname, lastname, station1, station2, station3, station4, station5, station6 } = req.body;
 
   if (!firstname || !lastname) {
     return res.status(400).json({ message: 'No user name provided' });
@@ -129,6 +133,10 @@ app.post('/api/insert/user', async (req, res) => {
       lastname,
       station1: station1 || { status: 'inactive', dateTimeModified: null },
       station2: station2 || { status: 'inactive', dateTimeModified: null },
+      station3: station3 || { status: 'inactive', dateTimeModified: null },
+      station4: station4 || { status: 'inactive', dateTimeModified: null },
+      station5: station5 || { status: 'inactive', dateTimeModified: null },
+      station6: station6 || { status: 'inactive', dateTimeModified: null },
     });
 
     await user.save();
