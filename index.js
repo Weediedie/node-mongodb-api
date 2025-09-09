@@ -32,9 +32,15 @@ const userSchema = new mongoose.Schema({
   station1: { type: StationSchema, default: {} },
   station2: { type: StationSchema, default: {} },
   station3: { type: StationSchema, default: {} },
-  // station4: { type: StationSchema, default: {} },
-  // station5: { type: StationSchema, default: {} },
-  // station6: { type: StationSchema, default: {} },
+  station4: { type: StationSchema, default: {} },
+  station5: { type: StationSchema, default: {} },
+  station6: { type: StationSchema, default: {} },
+  station7: { type: StationSchema, default: {} },
+  station8: { type: StationSchema, default: {} },
+  station9: { type: StationSchema, default: {} },
+  station10: { type: StationSchema, default: {} },
+  station11: { type: StationSchema, default: {} },
+  station12: { type: StationSchema, default: {} },
   dateCreated: { type: Date, default: Date.now }
 });
 
@@ -128,16 +134,22 @@ app.post('/api/insert/user', async (req, res) => {
     }
 
     // Initialize station fields, using provided values or default ones if not provided
-    const user = new User({
-      firstname,
-      lastname,
-      station1: station1 || { status: 'inactive', dateTimeModified: null },
-      station2: station2 || { status: 'inactive', dateTimeModified: null },
-      station3: station3 || { status: 'inactive', dateTimeModified: null }
-      // station4: station4 || { status: 'inactive', dateTimeModified: null },
-      // station5: station5 || { status: 'inactive', dateTimeModified: null },
-      // station6: station6 || { status: 'inactive', dateTimeModified: null },
-    });
+  const user = new User({
+  firstname,
+  lastname,
+  station1: station1 || { status: 'inactive', dateTimeModified: null },
+  station2: station2 || { status: 'inactive', dateTimeModified: null },
+  station3: station3 || { status: 'inactive', dateTimeModified: null },
+  station4: station4 || { status: 'inactive', dateTimeModified: null },
+  station5: station5 || { status: 'inactive', dateTimeModified: null },
+  station6: station6 || { status: 'inactive', dateTimeModified: null },
+  station7: station7 || { status: 'inactive', dateTimeModified: null },
+  station8: station8 || { status: 'inactive', dateTimeModified: null },
+  station9: station9 || { status: 'inactive', dateTimeModified: null },
+  station10: station10 || { status: 'inactive', dateTimeModified: null },
+  station11: station11 || { status: 'inactive', dateTimeModified: null },
+  station12: station12 || { status: 'inactive', dateTimeModified: null },
+});
 
     await user.save();
     res.status(201).json({ message: 'User inserted successfully', user });
