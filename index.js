@@ -119,7 +119,7 @@ app.get('/api/fetch/user', async (req, res) => {
 });
 
 app.post('/api/insert/user', async (req, res) => {
-  const { firstname, lastname, station1, station2, station3 } = req.body;
+  const { firstname, lastname, station1, station2, station3, station4, station5, station6, station7, station8, station9, station10, station11, station12 } = req.body;
 
   if (!firstname || !lastname) {
     return res.status(400).json({ message: 'No user name provided' });
