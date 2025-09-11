@@ -101,6 +101,28 @@ app.get('/api/fetch/all/users', async (req, res) => {
     res.status(500).json({ message: 'Error retrieving data', error });
   }
 });
+app.get('/api/check/user', async (req, res) => {
+  try {
+    const { firstname, lastname } = req.query; // destructure query params
+
+    let user;
+
+   if (firstname && lastname) {
+      // If no ID, search by first + last name
+      user = await User.findOne({ firstname, lastname });
+    } else {
+      return res.status(400).json({ message: 'Provide either User ID or both firstname and lastname' });
+    }
+
+    if (user) {
+      res.status(200).json({ data: user });
+    } else {
+      res.status(404).json({ message: 'User not found' });
+    }
+  } catch (error) {
+    res.status(500).json({ message: 'Error retrieving data', error });
+  }
+});
 app.get('/api/fetch/user', async (req, res) => {
   try {
     const userId = req.query.id; // Access 'id' from query parameters
@@ -161,7 +183,15 @@ app.post('/api/insert/user', async (req, res) => {
     res.status(500).json({ message: 'Error inserting user', error });
   }
 });
+app.post("/api/checkExisting", async (req,res) => {
+  
+  try{
+    
+  }catch(error){
 
+  }
+
+})
 app.post("/api/updateStationStatus", async (req, res) => {
   const session = await mongoose.startSession();
   session.startTransaction();
