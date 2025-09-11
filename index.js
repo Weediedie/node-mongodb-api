@@ -43,7 +43,9 @@ const userSchema = new mongoose.Schema({
   station10: { type: StationSchema, default: {} },
   station11: { type: StationSchema, default: {} },
   station12: { type: StationSchema, default: {} },
-  dateCreated: { type: Date, default: Date.now }
+  dateCreated: { type: Date, default: Date.now },
+  dateClaimed: {type: Date},
+  claimStatus: {type: Boolean, default:false}
 });
 
 
@@ -67,7 +69,32 @@ app.post('/api/insert', async (req, res) => {
     res.status(500).json({ message: 'Error inserting data', error });
   }
 });
+app.post('/api/update/userClaim', async (req, res) => {
+  try {
+    const { id, dateClaimed } = req.body; // User ID from request body
+    if (!id) {
+      return res.status(400).json({ message: "User ID is required" });
+    }
 
+    // Update user with dateClaimed + claimStatus
+    const user = await User.findByIdAndUpdate(
+      id,
+      {
+        dateClaimed: dateClaimed,
+        claimStatus: true,
+      },
+      { new: true } // return updated user
+    );
+
+    if (user) {
+      res.status(200).json({ message: "User updated successfully", data: user });
+    } else {
+      res.status(404).json({ message: "User not found" });
+    }
+  } catch (error) {
+    res.status(500).json({ message: "Error updating user", error });
+  }
+});
 // Route to fetch all barcode data
 app.get('/api/fetch', async (req, res) => {
   try {
@@ -123,6 +150,24 @@ app.get('/api/check/user', async (req, res) => {
     res.status(500).json({ message: 'Error retrieving data', error });
   }
 });
+app.get('/api/check/user/claim', async (req, res)=> {
+    try {
+    const userId = req.query.id; // Access 'id' from query parameters
+    if (!userId) {
+      return res.status(400).json({ message: 'User ID is required' });
+    }
+    
+    const user = await User.findById(userId); // Find user by ID
+
+    if (user.status === false && user.dateClaimed === null) {
+      res.status(200).json({ data: user }).json({message:"Not Claimed"});
+    } else {
+      res.status(209).json({ message: 'Claimed' }).json({status: user.status, dataClaimed: user.dateClaimed});
+    }
+  } catch (error) {
+    res.status(500).json({ message: 'Error retrieving data', error });
+  }
+})
 app.get('/api/fetch/user', async (req, res) => {
   try {
     const userId = req.query.id; // Access 'id' from query parameters
