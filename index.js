@@ -296,6 +296,61 @@ app.post("/api/updateStationStatus", async (req, res) => {
     });
   }
 });
+app.post("/api/updateAllStations", async (req, res) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
+  try {
+    const { uids, status } = req.body; // expect an array of user IDs (or custom uid field)
+
+    if (!Array.isArray(uids) || uids.length === 0) {
+      return res.status(400).json({ message: "Invalid or missing UIDs array." });
+    }
+
+    const users = await User.find({ _id: { $in: uids } }).session(session);
+    if (!users || users.length === 0) {
+      await session.abortTransaction();
+      return res.status(404).json({ message: "No users found!" });
+    }
+
+    const updateStatus = status || "Scanned";
+    const now = new Date();
+
+    for (const user of users) {
+      for (let i = 1; i <= 13; i++) {
+        const stationField = `station${i}`;
+
+        // Initialize if missing or string
+        if (!user[stationField] || typeof user[stationField] === "string") {
+          user[stationField] = {
+            status: updateStatus,
+            dateTimeModified: now,
+          };
+        } else {
+          user[stationField].status = updateStatus;
+          user[stationField].dateTimeModified = now;
+        }
+      }
+      await user.save({ session });
+    }
+
+    await session.commitTransaction();
+
+    return res.status(200).json({
+      success: true,
+      message: `All stations updated to '${updateStatus}' for ${uids.length} user(s).`,
+      data: users,
+    });
+  } catch (error) {
+    await session.abortTransaction();
+    return res.status(500).json({
+      message: "Error updating stations.",
+      error: error.message,
+    });
+  } finally {
+    session.endSession();
+  }
+});
 
 const PORT = process.env.PORT;
 
